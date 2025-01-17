@@ -109,13 +109,49 @@
     const loadingMessage = document.getElementById('loadingMessage');
     const orderDetails = document.getElementById('orderDetails');
 
-    submitButton.addEventListener('click', () => {
-      const orderNumber = orderNumberInput.value.trim();
-      if (!orderNumber) {
-        alert('Please enter an order number.');
-        return;
-      }
+submitButton.addEventListener('click', () => {
+  const orderNumber = orderNumberInput.value.trim();
+  if (!orderNumber) {
+    alert('Please enter an order number.');
+    return;
+  }
 
+  loadingMessage.style.display = 'block';
+  orderDetails.style.display = 'none';
+
+  fetch('https://eo15wr1qf96e2vo.m.pipedream.net', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ order_number: orderNumber }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      loadingMessage.style.display = 'none';
+
+      // Log the full response for debugging
+      console.log('Webhook response:', data);
+
+      // Validate the structure of the response
+      if (data.body && data.body.order_name && data.body.line_items) {
+        displayOrderDetails(data);
+      } else {
+        // Handle unexpected structure gracefully
+        orderDetails.style.display = 'block';
+        orderDetails.innerHTML = `<p>Unexpected response structure. Please check the console for details.</p>`;
+        console.error('Unexpected response structure:', data);
+      }
+    })
+    .catch((error) => {
+      loadingMessage.style.display = 'none';
+      alert('Failed to fetch order data. Please try again.');
+      console.error('Error:', error);
+    });
+});
       loadingMessage.style.display = 'block';
       orderDetails.style.display = 'none';
 
