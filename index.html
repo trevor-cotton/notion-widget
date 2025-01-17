@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Order Widget</title>
+  <title>Order Lookup Widget</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -124,15 +124,26 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ order_number: orderNumber }),
       })
-        .then((response) => response.json())
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
         .then((data) => {
           loadingMessage.style.display = 'none';
+
+          // Check if 'body' and expected fields exist in the response
+          if (!data.body || !data.body.order_name || !data.body.line_items) {
+            throw new Error('Unexpected response structure');
+          }
+
           displayOrderDetails(data);
         })
         .catch((error) => {
           loadingMessage.style.display = 'none';
           alert('Failed to fetch order data. Please try again.');
-          console.error(error);
+          console.error('Error:', error);
         });
     });
 
@@ -147,7 +158,7 @@
           <p><strong>${item.title}</strong></p>
           <p>Quantity: ${item.quantity}</p>
           <p>SKU: ${item.sku}</p>
-          <img src="${item.image_url}" alt="${item.title}">
+          <img src="${item.image_url}" alt="${item.title}" />
           <button class="reprint-btn">Reprint Sheet</button>
         `;
 
