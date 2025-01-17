@@ -109,83 +109,13 @@
     const loadingMessage = document.getElementById('loadingMessage');
     const orderDetails = document.getElementById('orderDetails');
 
-submitButton.addEventListener('click', () => {
-  const orderNumber = orderNumberInput.value.trim();
-  if (!orderNumber) {
-    alert('Please enter an order number.');
-    return;
-  }
-
-  loadingMessage.style.display = 'block';
-  orderDetails.style.display = 'none';
-
-  fetch('https://eo15wr1qf96e2vo.m.pipedream.net', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ order_number: orderNumber }),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+    submitButton.addEventListener('click', () => {
+      const orderNumber = orderNumberInput.value.trim();
+      if (!orderNumber) {
+        alert('Please enter an order number.');
+        return;
       }
-      return response.json();
-    })
-    .then((data) => {
-      loadingMessage.style.display = 'none';
 
-      // Log the response to ensure it matches expectations
-      console.log('Webhook response:', data);
-
-      // Check for the correct structure
-      if (data.order_name && Array.isArray(data.line_items)) {
-        displayOrderDetails(data);
-      } else {
-        throw new Error('Unexpected response structure');
-      }
-    })
-    .catch((error) => {
-      loadingMessage.style.display = 'none';
-      alert('Failed to fetch order data. Please try again.');
-      console.error('Error:', error);
-    });
-});
-    
-  loadingMessage.style.display = 'block';
-  orderDetails.style.display = 'none';
-
-  fetch('https://eo15wr1qf96e2vo.m.pipedream.net', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ order_number: orderNumber }),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then((data) => {
-      loadingMessage.style.display = 'none';
-
-      // Log the full response for debugging
-      console.log('Webhook response:', data);
-
-      // Validate the structure of the response
-      if (data.body && data.body.order_name && data.body.line_items) {
-        displayOrderDetails(data);
-      } else {
-        // Handle unexpected structure gracefully
-        orderDetails.style.display = 'block';
-        orderDetails.innerHTML = `<p>Unexpected response structure. Please check the console for details.</p>`;
-        console.error('Unexpected response structure:', data);
-      }
-    })
-    .catch((error) => {
-      loadingMessage.style.display = 'none';
-      alert('Failed to fetch order data. Please try again.');
-      console.error('Error:', error);
-    });
-});
       loadingMessage.style.display = 'block';
       orderDetails.style.display = 'none';
 
@@ -203,12 +133,11 @@ submitButton.addEventListener('click', () => {
         .then((data) => {
           loadingMessage.style.display = 'none';
 
-          // Check if 'body' and expected fields exist in the response
-          if (!data.body || !data.body.order_name || !data.body.line_items) {
+          if (data.order_name && Array.isArray(data.line_items)) {
+            displayOrderDetails(data);
+          } else {
             throw new Error('Unexpected response structure');
           }
-
-          displayOrderDetails(data);
         })
         .catch((error) => {
           loadingMessage.style.display = 'none';
@@ -219,9 +148,9 @@ submitButton.addEventListener('click', () => {
 
     function displayOrderDetails(data) {
       orderDetails.style.display = 'block';
-      orderDetails.innerHTML = `<h2>Order #${data.body.order_name}</h2>`;
+      orderDetails.innerHTML = `<h2>Order #${data.order_name}</h2>`;
 
-      data.body.line_items.forEach((item) => {
+      data.line_items.forEach((item) => {
         const lineItemDiv = document.createElement('div');
         lineItemDiv.className = 'line-item';
         lineItemDiv.innerHTML = `
@@ -240,7 +169,7 @@ submitButton.addEventListener('click', () => {
           fetch('https://eoi91sng4v17k54.m.pipedream.net', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sku: item.sku, order_number: data.body.order_name }),
+            body: JSON.stringify({ sku: item.sku, order_number: data.order_name }),
           }).catch((error) => {
             alert('Failed to send reprint request. Please try again.');
             console.error(error);
