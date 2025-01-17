@@ -133,6 +133,40 @@ submitButton.addEventListener('click', () => {
     .then((data) => {
       loadingMessage.style.display = 'none';
 
+      // Log the response to ensure it matches expectations
+      console.log('Webhook response:', data);
+
+      // Check for the correct structure
+      if (data.order_name && Array.isArray(data.line_items)) {
+        displayOrderDetails(data);
+      } else {
+        throw new Error('Unexpected response structure');
+      }
+    })
+    .catch((error) => {
+      loadingMessage.style.display = 'none';
+      alert('Failed to fetch order data. Please try again.');
+      console.error('Error:', error);
+    });
+});
+    
+  loadingMessage.style.display = 'block';
+  orderDetails.style.display = 'none';
+
+  fetch('https://eo15wr1qf96e2vo.m.pipedream.net', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ order_number: orderNumber }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      loadingMessage.style.display = 'none';
+
       // Log the full response for debugging
       console.log('Webhook response:', data);
 
