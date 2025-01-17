@@ -148,7 +148,11 @@
 
     function displayOrderDetails(data) {
       orderDetails.style.display = 'block';
-      orderDetails.innerHTML = `<h2>Order #${data.order_name}</h2>`;
+
+      // Remove the redundant '#' here
+      const orderName = data.order_name.startsWith('#') ? data.order_name.slice(1) : data.order_name;
+
+      orderDetails.innerHTML = `<h2>Order #${orderName}</h2>`;
 
       data.line_items.forEach((item) => {
         const lineItemDiv = document.createElement('div');
