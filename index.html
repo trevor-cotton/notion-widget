@@ -76,6 +76,7 @@
     .line-item img {
       max-width: 100px;
       margin-bottom: 10px;
+      background-color: #ddd;
     }
     .line-item .reprint-btn {
       margin-top: 10px;
@@ -116,6 +117,7 @@
         return;
       }
 
+      submitButton.disabled = true;
       loadingMessage.style.display = 'block';
       orderDetails.style.display = 'none';
 
@@ -132,6 +134,7 @@
         })
         .then((data) => {
           loadingMessage.style.display = 'none';
+          submitButton.disabled = false;
 
           if (data.order_name && Array.isArray(data.line_items)) {
             displayOrderDetails(data);
@@ -141,6 +144,7 @@
         })
         .catch((error) => {
           loadingMessage.style.display = 'none';
+          submitButton.disabled = false;
           alert('Failed to fetch order data. Please try again.');
           console.error('Error:', error);
         });
@@ -148,8 +152,6 @@
 
     function displayOrderDetails(data) {
       orderDetails.style.display = 'block';
-
-      // Remove the redundant '#' here
       const orderName = data.order_name.startsWith('#') ? data.order_name.slice(1) : data.order_name;
 
       orderDetails.innerHTML = `<h2>Order #${orderName}</h2>`;
@@ -157,11 +159,13 @@
       data.line_items.forEach((item) => {
         const lineItemDiv = document.createElement('div');
         lineItemDiv.className = 'line-item';
+        const placeholderImage = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCAxMDAgNjAiPjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iNjAiIGZpbGw9IiNkZGQiLz48L3N2Zz4=';
+
         lineItemDiv.innerHTML = `
           <p><strong>${item.title}</strong></p>
           <p>Quantity: ${item.quantity}</p>
           <p>SKU: ${item.sku}</p>
-          <img src="${item.image_url}" alt="${item.title}" />
+          <img src="${placeholderImage}" data-src="${item.image_url}" alt="${item.title}" class="lazy-image" />
           <button class="reprint-btn">Reprint Sheet</button>
         `;
 
@@ -181,6 +185,15 @@
         });
 
         orderDetails.appendChild(lineItemDiv);
+
+        // Lazy-load images
+        const img = lineItemDiv.querySelector('.lazy-image');
+        const imgSrc = img.getAttribute('data-src');
+        if (imgSrc) {
+          const image = new Image();
+          image.onload = () => (img.src = imgSrc);
+          image.src = imgSrc;
+        }
       });
     }
   </script>
